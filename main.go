@@ -4,7 +4,7 @@ import (
 	//"context"
 	//"log"
 
-	//"fmt"
+	"fmt"
 	"strconv"
 	"time"
 
@@ -38,7 +38,7 @@ func main() {
 	pausCount := 0
 	pausLabel := widget.NewLabel(strconv.Itoa(pausCount))
 	pausCont := container.NewHBox(pausLabel)
-	go toPausCount(&pausCount, pausLabel)
+	go toPausCount(&pausCount, &mainCount, pausLabel)
 
 	mainCont := container.NewVBox(firstContainer, pausCont)
 	mainWindow.SetContent(mainCont)
@@ -46,11 +46,32 @@ func main() {
 	App.Run()
 }
 
-func toPausCount(count *int, label *widget.Label) {
+func toPausCount(count *int, mainCount *int, label *widget.Label) {
+	paus := 0
+	mainPercent := 20
+	pausPercent := 20
 	tiker := time.NewTicker(1 * time.Second)
+	fmt.Println(*mainCount, paus, mainPercent)
+
 	for range tiker.C {
-		*count += 1
-		label.SetText(strconv.Itoa(*count))
+		if mainPercent == 0 {
+			tiker.Stop()
+		}
+		if *count == (mainPercent - (10 * (*mainCount))) {
+			fmt.Println(*mainCount, paus, mainPercent)
+			if paus == (pausPercent - (3 * (*mainCount))) {
+				*count = 0
+				paus = 0
+				continue
+			} else {
+				paus += 1
+				label.SetText(strconv.Itoa(*count) + " " + strconv.Itoa(paus))
+			}
+		} else {
+			*count += 1
+			fmt.Println(*mainCount, paus, mainPercent)
+			label.SetText(strconv.Itoa(*count) + " " + strconv.Itoa(paus))
+		}
 	}
 }
 
