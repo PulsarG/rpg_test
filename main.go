@@ -4,7 +4,9 @@ import (
 	//"context"
 	//"log"
 
+	//"fmt"
 	"strconv"
+	"time"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
@@ -21,9 +23,8 @@ func main() {
 	App := app.New()
 	mainWindow := App.NewWindow("RPG TEST")
 	mainWindow.Resize(fyne.NewSize(500, 500))
-	/* positiv := 1
-	negativ := -1 */
 
+	textLabel := widget.NewLabel("EDGE")
 	mainCount := 0
 	infoPanel := widget.NewLabel(strconv.Itoa(mainCount))
 
@@ -31,11 +32,26 @@ func main() {
 
 	startButton := widget.NewButton("Плюс", func() { plusOrMinus(&mainCount, 1, infoPanel) })
 
-	cont := container.NewVBox(infoPanel, startButton, stopButton)
+	cont := container.NewVBox(startButton, stopButton)
+	firstContainer := container.NewHBox(textLabel, infoPanel, cont)
 
-	mainWindow.SetContent(container.NewCenter(cont))
+	pausCount := 0
+	pausLabel := widget.NewLabel(strconv.Itoa(pausCount))
+	pausCont := container.NewHBox(pausLabel)
+	go toPausCount(&pausCount, pausLabel)
+
+	mainCont := container.NewVBox(firstContainer, pausCont)
+	mainWindow.SetContent(mainCont)
 	mainWindow.Show()
 	App.Run()
+}
+
+func toPausCount(count *int, label *widget.Label) {
+	tiker := time.NewTicker(1 * time.Second)
+	for range tiker.C {
+		*count += 1
+		label.SetText(strconv.Itoa(*count))
+	}
 }
 
 func plusOrMinus(mainCount *int, count int, infoPanel *widget.Label) {
