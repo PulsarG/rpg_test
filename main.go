@@ -1,4 +1,4 @@
-// 0.06
+// ** 0.07
 
 package main
 
@@ -20,28 +20,27 @@ import (
 	// "fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 
-	"rpg_test/data"
+	d "rpg_test/data"
 	"rpg_test/notyfication"
 )
 
 func main() {
 	App := app.New()
-	mainWindow := App.NewWindow("RPG TEST")
-	mainWindow.Resize(fyne.NewSize(500, 500))
+	mainWindow := App.NewWindow(d.NameWindow)
+	mainWindow.Resize(fyne.NewSize(d.W_Window, d.H_Window))
 
-	char := data.GetStartChar()
+	char := d.GetStartChar()
 
 	textLabel := widget.NewLabel("EDGE")
 
 	infoPanel := widget.NewLabel(strconv.Itoa(char.GetMainCount()))
 
-	stopButton := widget.NewButton("Минус", func() { plusOrMinus(char, -1, infoPanel) })
-	startButton := widget.NewButton("Плюс", func() { plusOrMinus(char, 1, infoPanel) })
+	stopButton := widget.NewButton("-", func() { plusOrMinus(char, -1, infoPanel) })
+	startButton := widget.NewButton("+", func() { plusOrMinus(char, 1, infoPanel) })
 
 	cont := container.NewVBox(startButton, stopButton)
 	firstContainer := container.NewHBox(textLabel, infoPanel, cont)
 
-	//pausCount := 0
 	pausLabel := widget.NewLabel(strconv.Itoa(char.GetPausCount()))
 	pausCont := container.NewHBox(pausLabel)
 	go toPausCount(char, pausLabel)
@@ -56,42 +55,47 @@ func main() {
 // !!! с которой и работать. Вносить изменения в поля структуры только при
 // !!! выходе из программы
 
-func toPausCount(char *data.DataChar, label *widget.Label) {
+func toPausCount(char *d.DataChar, label *widget.Label) {
 	paus := 0
+	toPaus := 0
 	//mainPercent := 60
 	//pausPercent := 20
 	tiker := time.NewTicker(1 * time.Second)
 
 	for range tiker.C {
-		if char.GetMainPercent() == 0 {
+		if char.GetMainPercent() <= 0 {
 			tiker.Stop()
+			label.SetText(d.LooseText)
+			return
 		}
 
-		if char.GetPausCount() == (char.GetMainPercent() - (10 * (char.GetMainCount()))) {
+		if char.GetPausCount() >= char.GetMainPercent() {
 			// * Пауза
-			if paus == (char.GetPausPercent() - (3 * (char.GetMainCount()))) {
-				// * Если пауза кончилась
-				char.SetPausCount(0)
+			// *  Начало паузы
+			if paus == 0 {
+				notyfication.Beep("test on")
+			}
+			paus += 1
+			label.SetText(strconv.Itoa(char.GetPausCount()) + " " + strconv.Itoa(paus))
+			// * Конец паузы
+			if (char.GetPausPercent() - paus) == 0 {
 				paus = 0
 				notyfication.Beep("test off")
+				char.SetPausCount(0)
 				continue
-			} else {
-				// *  Начало паузы
-				if paus == 0 {
-					notyfication.Beep("test on")
-				}
-				paus += 1
-				label.SetText(strconv.Itoa(char.GetPausCount()) + " " + strconv.Itoa(paus))
 			}
+
 		} else {
 			// * Основной счетчик
+			toPaus += 1
 			char.SetPausCount(char.GetPausCount() + 1)
 			label.SetText(strconv.Itoa(char.GetPausCount()) + " " + strconv.Itoa(paus))
 		}
 	}
 }
 
-func plusOrMinus(char *data.DataChar, count int, infoPanel *widget.Label) {
+func plusOrMinus(char *d.DataChar, count int, infoPanel *widget.Label) {
 	char.SetMainCount(count)
-	infoPanel.SetText(strconv.Itoa(char.GetMainPercent()))
+	char.SetMainPercent((char.GetMainPercent() - (count * d.Step)))
+	infoPanel.SetText(strconv.Itoa(char.GetMainCount()))
 }
