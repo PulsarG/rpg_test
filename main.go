@@ -1,3 +1,5 @@
+// 0.04
+
 package main
 
 import (
