@@ -7,5 +7,6 @@ const (
 
 	LooseText = "YOU LOOSE"
 
-	Step = 10
+	Step     = 1
+	PausStep = 2
 )
