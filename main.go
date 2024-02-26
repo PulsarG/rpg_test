@@ -1,4 +1,4 @@
-// 0.05
+// 0.06
 
 package main
 
@@ -6,13 +6,13 @@ import (
 	//"context"
 	//"log"
 
-	"fmt"
-	"strconv"
-	"time"
-
+	//"fmt"
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/container"
+	//"github.com/gen2brain/beeep"
+	"strconv"
+	"time"
 
 	// "fyne.io/fyne/v2/canvas"
 	// "fyne.io/fyne/v2/dialog"
@@ -21,6 +21,7 @@ import (
 	"fyne.io/fyne/v2/widget"
 
 	"rpg_test/data"
+	"rpg_test/notyfication"
 )
 
 func main() {
@@ -31,7 +32,7 @@ func main() {
 	char := data.GetStartChar()
 
 	textLabel := widget.NewLabel("EDGE")
-	//mainCount := 0
+
 	infoPanel := widget.NewLabel(strconv.Itoa(char.GetMainCount()))
 
 	stopButton := widget.NewButton("Минус", func() { plusOrMinus(char, -1, infoPanel) })
@@ -51,30 +52,40 @@ func main() {
 	App.Run()
 }
 
+// !!! Брать значения из структуры только для создания внутренней переменной
+// !!! с которой и работать. Вносить изменения в поля структуры только при
+// !!! выходе из программы
+
 func toPausCount(char *data.DataChar, label *widget.Label) {
 	paus := 0
 	//mainPercent := 60
 	//pausPercent := 20
 	tiker := time.NewTicker(1 * time.Second)
-	//fmt.Println(*mainCount, paus, mainPercent)
 
 	for range tiker.C {
 		if char.GetMainPercent() == 0 {
 			tiker.Stop()
 		}
+
 		if char.GetPausCount() == (char.GetMainPercent() - (10 * (char.GetMainCount()))) {
-			fmt.Println(char.GetMainCount(), paus, char.GetMainPercent())
+			// * Пауза
 			if paus == (char.GetPausPercent() - (3 * (char.GetMainCount()))) {
+				// * Если пауза кончилась
 				char.SetPausCount(0)
 				paus = 0
+				notyfication.Beep("test off")
 				continue
 			} else {
+				// *  Начало паузы
+				if paus == 0 {
+					notyfication.Beep("test on")
+				}
 				paus += 1
 				label.SetText(strconv.Itoa(char.GetPausCount()) + " " + strconv.Itoa(paus))
 			}
 		} else {
+			// * Основной счетчик
 			char.SetPausCount(char.GetPausCount() + 1)
-			fmt.Println(char.GetMainCount(), paus, char.GetMainPercent())
 			label.SetText(strconv.Itoa(char.GetPausCount()) + " " + strconv.Itoa(paus))
 		}
 	}
