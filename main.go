@@ -1,4 +1,4 @@
-// 0.04
+// 0.05
 
 package main
 
@@ -19,6 +19,8 @@ import (
 	//"fyne.io/fyne/v2/layout"
 	// "fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
+
+	"rpg_test/data"
 )
 
 func main() {
@@ -26,21 +28,22 @@ func main() {
 	mainWindow := App.NewWindow("RPG TEST")
 	mainWindow.Resize(fyne.NewSize(500, 500))
 
+	char := data.GetStartChar()
+
 	textLabel := widget.NewLabel("EDGE")
-	mainCount := 0
-	infoPanel := widget.NewLabel(strconv.Itoa(mainCount))
+	//mainCount := 0
+	infoPanel := widget.NewLabel(strconv.Itoa(char.GetMainCount()))
 
-	stopButton := widget.NewButton("Минус", func() { plusOrMinus(&mainCount, -1, infoPanel) })
-
-	startButton := widget.NewButton("Плюс", func() { plusOrMinus(&mainCount, 1, infoPanel) })
+	stopButton := widget.NewButton("Минус", func() { plusOrMinus(char, -1, infoPanel) })
+	startButton := widget.NewButton("Плюс", func() { plusOrMinus(char, 1, infoPanel) })
 
 	cont := container.NewVBox(startButton, stopButton)
 	firstContainer := container.NewHBox(textLabel, infoPanel, cont)
 
-	pausCount := 0
-	pausLabel := widget.NewLabel(strconv.Itoa(pausCount))
+	//pausCount := 0
+	pausLabel := widget.NewLabel(strconv.Itoa(char.GetPausCount()))
 	pausCont := container.NewHBox(pausLabel)
-	go toPausCount(&pausCount, &mainCount, pausLabel)
+	go toPausCount(char, pausLabel)
 
 	mainCont := container.NewVBox(firstContainer, pausCont)
 	mainWindow.SetContent(mainCont)
@@ -48,36 +51,36 @@ func main() {
 	App.Run()
 }
 
-func toPausCount(count *int, mainCount *int, label *widget.Label) {
+func toPausCount(char *data.DataChar, label *widget.Label) {
 	paus := 0
-	mainPercent := 20
-	pausPercent := 20
+	//mainPercent := 60
+	//pausPercent := 20
 	tiker := time.NewTicker(1 * time.Second)
-	fmt.Println(*mainCount, paus, mainPercent)
+	//fmt.Println(*mainCount, paus, mainPercent)
 
 	for range tiker.C {
-		if mainPercent == 0 {
+		if char.GetMainPercent() == 0 {
 			tiker.Stop()
 		}
-		if *count == (mainPercent - (10 * (*mainCount))) {
-			fmt.Println(*mainCount, paus, mainPercent)
-			if paus == (pausPercent - (3 * (*mainCount))) {
-				*count = 0
+		if char.GetPausCount() == (char.GetMainPercent() - (10 * (char.GetMainCount()))) {
+			fmt.Println(char.GetMainCount(), paus, char.GetMainPercent())
+			if paus == (char.GetPausPercent() - (3 * (char.GetMainCount()))) {
+				char.SetPausCount(0)
 				paus = 0
 				continue
 			} else {
 				paus += 1
-				label.SetText(strconv.Itoa(*count) + " " + strconv.Itoa(paus))
+				label.SetText(strconv.Itoa(char.GetPausCount()) + " " + strconv.Itoa(paus))
 			}
 		} else {
-			*count += 1
-			fmt.Println(*mainCount, paus, mainPercent)
-			label.SetText(strconv.Itoa(*count) + " " + strconv.Itoa(paus))
+			char.SetPausCount(char.GetPausCount() + 1)
+			fmt.Println(char.GetMainCount(), paus, char.GetMainPercent())
+			label.SetText(strconv.Itoa(char.GetPausCount()) + " " + strconv.Itoa(paus))
 		}
 	}
 }
 
-func plusOrMinus(mainCount *int, count int, infoPanel *widget.Label) {
-	*mainCount += count
-	infoPanel.SetText(strconv.Itoa(*mainCount))
+func plusOrMinus(char *data.DataChar, count int, infoPanel *widget.Label) {
+	char.SetMainCount(count)
+	infoPanel.SetText(strconv.Itoa(char.GetMainPercent()))
 }
