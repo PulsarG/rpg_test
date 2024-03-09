@@ -1,14 +1,8 @@
-// ** 0.08
+// ** 0.08,1
 
 package main
 
 import (
-	//"context"
-	//"log"
-
-	//"fmt"
-	"fmt"
-
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/container"
@@ -17,15 +11,13 @@ import (
 	"strconv"
 	"time"
 
-	// "fyne.io/fyne/v2/canvas"
-	// "fyne.io/fyne/v2/dialog"
-	//"fyne.io/fyne/v2/layout"
-	// "fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 
 	d "rpg_test/data"
 	"rpg_test/notyfication"
 )
+
+var isPaus = false
 
 func main() {
 	App := app.New()
@@ -67,49 +59,54 @@ func toPausCount(char *d.DataChar, label, hardLabel *widget.Label) {
 	tiker := time.NewTicker(1 * time.Second)
 
 	for range tiker.C {
-		if char.GetMainPercent() <= 0 {
+		if char.GetMainPercent() <= 0 || char.GetPausPercent() <= 0 {
 			tiker.Stop()
 			label.SetText(d.LooseText)
 			return
 		}
 
+		if isPaus {
+			toPaus = char.GetMainPercent()
+			isPaus = false
+			continue
+		}
+
 		if toPaus == char.GetMainPercent() {
 			// * Пауза
+			
 			// *  Начало паузы
-			fmt.Println(paus)
 			if paus == 0 {
 				char.SetHardCount(char.GetHardCount() + 1)
 				if (char.GetHardCount() % 5) == 0 {
 					hardStuck++
 					hardLabel.SetText(strconv.Itoa(char.GetHardCount()) + " " + strconv.Itoa(hardStuck))
-					char.SetMainPercent(char.GetMainPercent() + 3)
+					char.SetMainPercent(char.GetMainPercent() + 5)
 					char.SetPausPercent(char.GetPausPercent() + 10)
 				}
 				hardLabel.SetText(strconv.Itoa(char.GetHardCount()) + " " + strconv.Itoa(hardStuck))
-				notyfication.Beep("test on")
+				notyfication.Beep("ПАУЗА")
 			}
 			paus += 1
-			label.SetText(strconv.Itoa(char.GetPausCount()) + " пауза " + strconv.Itoa(paus))
+			label.SetText(strconv.Itoa(paus) + " / " + strconv.Itoa(char.GetPausPercent()) + " Пауза")
+
 			// * Конец паузы
 			if char.GetPausPercent() == paus {
-				fmt.Println(char.GetPausPercent(), paus)
 				paus = 0
-				notyfication.Beep("test off")
+				notyfication.Beep("СТАРТ")
 				toPaus = 0
 				continue
 			}
 
 		} else {
-			fmt.Println(char.GetPausPercent(), paus)
 			// * Основной счетчик
 			toPaus += 1
-			//char.SetPausCount(char.GetPausCount() + 1)
-			label.SetText(strconv.Itoa(toPaus) + " * " + strconv.Itoa(paus))
+			label.SetText(strconv.Itoa(toPaus) + " / " + strconv.Itoa(char.GetMainPercent()) + " Игра")
 		}
 	}
 }
 
 func plusOrMinus(char *d.DataChar, count int, infoPanel *widget.Label) {
+	isPaus = true
 	char.SetMainCount(count)
 	char.SetMainPercent((char.GetMainPercent() - (count * d.Step)))
 	char.SetPausPercent((char.GetPausPercent() - (count * d.PausStep)))

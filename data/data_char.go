@@ -12,12 +12,12 @@ type DataChar struct {
 func GetStartChar() *DataChar {
 	return &DataChar{
 		mainCount:   0,
-		mainPercent: 10,
+		mainPercent: 60, // 60
 
 		hardCount: 0,
 
 		pausCount:   0,
-		pausPercent: 10,
+		pausPercent: 20, // 20
 	}
 }
 
